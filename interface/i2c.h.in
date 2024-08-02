@@ -1,0 +1,18 @@
+/*
+ * This folder allows to create nearly universal interface for the I2c allowing to use
+ * it accross multiple platforms
+ */
+#ifndef I2C_H
+#define I2C_H
+
+#if defined(PLATFORM_ESP32)
+#include "interface/esp32/i2c.h"
+#elif defined(PLATFORM_STM32H7)
+#include "interface/stm32/i2c.h"
+#elif defined(PLATFORM_LINUX)
+#include "interface/linux/i2c.h"
+#else
+#error "No platform defined"
+#endif
+
+#endif // I2C_H
