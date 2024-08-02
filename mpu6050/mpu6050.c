@@ -23,4 +23,7 @@ void init() {
 }
 
 void test_connection() {
+    // request device id
+    uint16_t device_id = NULL;
+    return device_id;
 }
