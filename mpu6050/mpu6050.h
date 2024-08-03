@@ -1,132 +1,94 @@
-#ifndef MPU6050_REGISTERS_H
-#define MPU6050_REGISTERS_H
+#ifndef MPU6050_H
+#define MPU6050_H
 
-// Self Test Registers
-#define MPU6050_SELF_TEST_X_R           0x0D
-#define MPU6050_SELF_TEST_Y_R           0x0E
-#define MPU6050_SELF_TEST_Z_R           0x0F
-#define MPU6050_SELF_TEST_A_R           0x10
+/* device information */
+#include "registers.h"
+#include "config.h"
 
-// Sample Rate Divider
-#define MPU6050_SMPLRT_DIV_RW           0x19
+/* auto generated file during the build process containing platform bindings */
+#include "interface/i2c.h"
 
-// Configuration
-#define MPU6050_CONFIG_RW               0x1A
+// internal functions declarations
+static void set_clock_source(uint8_t src);
+static void set_gyro_range_scale(uint8_t scale);
+static void set_accel_range_scale(uint8_t scale);
+static void enable_sleep(int is_enabled);
+static uint8_t get_device_id();
 
-// Gyroscope Configuration
-#define MPU6050_GYRO_CONFIG_RW          0x1B
+/*
+ * High-Level functions client should interact with
+ */
+void init() {
+    set_clock_source(MPU6050_CLOCK_PLL_XGYRO);
+    set_gyro_range_scale(MPU6050_GYRO_FS_250);
+    set_accel_range_scale(MPU6050_ACCEL_FS_2);
+    enable_sleep(0);
+}
 
-// Accelerometer Configuration
-#define MPU6050_ACCEL_CONFIG_RW         0x1C
+uint8_t test_connection() {
+    return get_device_id() == 0x34;
+}
 
-// FIFO Enable
-#define MPU6050_FIFO_EN_RW              0x23
+/*
+ *
+    bool I2Cdev::writeBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t data, void *wireObj) {
+        uint8_t b = 0;
+        if (readByte(devAddr, regAddr, &b, I2Cdev::readTimeout, wireObj) != 0) {
+            uint8_t mask = ((1 << length) - 1) << (bitStart - length + 1);
+            data <<= (bitStart - length + 1); // shift data into correct position
+            data &= mask; // zero all non-important bits in data
+            b &= ~(mask); // zero all important bits in existing byte
+            b |= data; // combine data with existing byte
+            return writeByte(devAddr, regAddr, b, wireObj);
+        } else {
+            return false;
+        }
+    }
 
-// I2C Master Control
-#define MPU6050_I2C_MST_CTRL_RW         0x24
+    bool I2Cdev::writeByte(uint8_t devAddr, uint8_t regAddr, uint8_t data, void *wireObj) {
+	    i2c_cmd_handle_t cmd;
 
-// I2C Slave 0-3 Control and Data Out
-#define MPU6050_I2C_SLV0_ADDR_RW        0x25
-#define MPU6050_I2C_SLV0_REG_RW         0x26
-#define MPU6050_I2C_SLV0_CTRL_RW        0x27
-#define MPU6050_I2C_SLV1_ADDR_RW        0x28
-#define MPU6050_I2C_SLV1_REG_RW         0x29
-#define MPU6050_I2C_SLV1_CTRL_RW        0x2A
-#define MPU6050_I2C_SLV2_ADDR_RW        0x2B
-#define MPU6050_I2C_SLV2_REG_RW         0x2C
-#define MPU6050_I2C_SLV2_CTRL_RW        0x2D
-#define MPU6050_I2C_SLV3_ADDR_RW        0x2E
-#define MPU6050_I2C_SLV3_REG_RW         0x2F
-#define MPU6050_I2C_SLV3_CTRL_RW        0x30
+	    cmd = i2c_cmd_link_create();
+	    ESP_ERROR_CHECK(i2c_master_start(cmd));
+	    ESP_ERROR_CHECK(i2c_master_write_byte(cmd, (devAddr << 1) | I2C_MASTER_WRITE, 1));
+	    ESP_ERROR_CHECK(i2c_master_write_byte(cmd, regAddr, 1));
+	    ESP_ERROR_CHECK(i2c_master_write_byte(cmd, data, 1));
+	    ESP_ERROR_CHECK(i2c_master_stop(cmd));
+	    ESP_ERROR_CHECK(i2c_master_cmd_begin(I2C_NUM, cmd, 1000/portTICK_PERIOD_MS));
+	    i2c_cmd_link_delete(cmd);
 
-// I2C Slave 4 Control and Data Out
-#define MPU6050_I2C_SLV4_ADDR_RW        0x31
-#define MPU6050_I2C_SLV4_REG_RW         0x32
-#define MPU6050_I2C_SLV4_DO_RW          0x33
-#define MPU6050_I2C_SLV4_CTRL_RW        0x34
-#define MPU6050_I2C_SLV4_DI_R           0x35
+	    return true;
+    }
 
-// I2C Master Status
-#define MPU6050_I2C_MST_STATUS_R        0x36
+    int8_t I2Cdev::readByte(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint16_t timeout, void *wireObj) {
+        return readBytes(devAddr, regAddr, 1, data, timeout, wireObj);
+    }
+ */
 
-// Interrupt Registers
-#define MPU6050_INT_PIN_CFG_RW          0x37
-#define MPU6050_INT_ENABLE_RW           0x38
-#define MPU6050_INT_STATUS_R            0x3A
+/*
+ * Low-Level functions for internal use only
+ */
+static void set_clock_source(uint8_t src) {
+    //I2Cdev::writeBits(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_CLKSEL_BIT, MPU6050_PWR1_CLKSEL_LENGTH, source, wireObj)
+}
 
-// Accelerometer Measurements
-#define MPU6050_ACCEL_XOUT_H_R          0x3B
-#define MPU6050_ACCEL_XOUT_L_R          0x3C
-#define MPU6050_ACCEL_YOUT_H_R          0x3D
-#define MPU6050_ACCEL_YOUT_L_R          0x3E
-#define MPU6050_ACCEL_ZOUT_H_R          0x3F
-#define MPU6050_ACCEL_ZOUT_L_R          0x40
+static void set_gyro_range_scale(uint8_t scale) {
+    //I2Cdev::writeBits(devAddr, MPU6050_RA_GYRO_CONFIG, MPU6050_GCONFIG_FS_SEL_BIT, MPU6050_GCONFIG_FS_SEL_LENGTH, range, wireObj);
+}
 
-// Temperature Measurement
-#define MPU6050_TEMP_OUT_H_R            0x41
-#define MPU6050_TEMP_OUT_L_R            0x42
+static void set_accel_range_scale(uint8_t scale) {
+    //I2Cdev::writeBits(devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_AFS_SEL_BIT, MPU6050_ACONFIG_AFS_SEL_LENGTH, range, wireObj);
+}
 
-// Gyroscope Measurements
-#define MPU6050_GYRO_XOUT_H_R           0x43
-#define MPU6050_GYRO_XOUT_L_R           0x44
-#define MPU6050_GYRO_YOUT_H_R           0x45
-#define MPU6050_GYRO_YOUT_L_R           0x46
-#define MPU6050_GYRO_ZOUT_H_R           0x47
-#define MPU6050_GYRO_ZOUT_L_R           0x48
+static void enable_sleep(int is_enabled) {
+    //I2Cdev::writeBit(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_SLEEP_BIT, enabled, wireObj);
+}
 
-// External Sensor Data
-#define MPU6050_EXT_SENS_DATA_00_R      0x49
-#define MPU6050_EXT_SENS_DATA_01_R      0x4A
-#define MPU6050_EXT_SENS_DATA_02_R      0x4B
-#define MPU6050_EXT_SENS_DATA_03_R      0x4C
-#define MPU6050_EXT_SENS_DATA_04_R      0x4D
-#define MPU6050_EXT_SENS_DATA_05_R      0x4E
-#define MPU6050_EXT_SENS_DATA_06_R      0x4F
-#define MPU6050_EXT_SENS_DATA_07_R      0x50
-#define MPU6050_EXT_SENS_DATA_08_R      0x51
-#define MPU6050_EXT_SENS_DATA_09_R      0x52
-#define MPU6050_EXT_SENS_DATA_10_R      0x53
-#define MPU6050_EXT_SENS_DATA_11_R      0x54
-#define MPU6050_EXT_SENS_DATA_12_R      0x55
-#define MPU6050_EXT_SENS_DATA_13_R      0x56
-#define MPU6050_EXT_SENS_DATA_14_R      0x57
-#define MPU6050_EXT_SENS_DATA_15_R      0x58
-#define MPU6050_EXT_SENS_DATA_16_R      0x59
-#define MPU6050_EXT_SENS_DATA_17_R      0x5A
-#define MPU6050_EXT_SENS_DATA_18_R      0x5B
-#define MPU6050_EXT_SENS_DATA_19_R      0x5C
-#define MPU6050_EXT_SENS_DATA_20_R      0x5D
-#define MPU6050_EXT_SENS_DATA_21_R      0x5E
-#define MPU6050_EXT_SENS_DATA_22_R      0x5F
-#define MPU6050_EXT_SENS_DATA_23_R      0x60
+static uint8_t get_device_id() {
+    /*
+     *  I2Cdev::readBits(devAddr, MPU6050_RA_WHO_AM_I, MPU6050_WHO_AM_I_BIT, MPU6050_WHO_AM_I_LENGTH, buffer, I2Cdev::readTimeout, wireObj);
+     *  return buffer[0];
+     */
+}
 
-// I2C Slave Data Out
-#define MPU6050_I2C_SLV0_DO_RW          0x63
-#define MPU6050_I2C_SLV1_DO_RW          0x64
-#define MPU6050_I2C_SLV2_DO_RW          0x65
-#define MPU6050_I2C_SLV3_DO_RW          0x66
-
-// I2C Master Delay Control
-#define MPU6050_I2C_MST_DELAY_CTRL_RW   0x67
-
-// Signal Path Reset
-#define MPU6050_SIGNAL_PATH_RESET_RW    0x68
-
-// User Control
-#define MPU6050_USER_CTRL_RW            0x6A
-
-// Power Management Registers
-#define MPU6050_PWR_MGMT_1_RW           0x6B
-#define MPU6050_PWR_MGMT_2_RW           0x6C
-
-// FIFO Count Registers
-#define MPU6050_FIFO_COUNTH_R           0x72
-#define MPU6050_FIFO_COUNTL_R           0x73
-
-// FIFO Read Write
-#define MPU6050_FIFO_R_W_RW             0x74
-
-// Who Am I
-#define MPU6050_WHO_AM_I_R              0x75
-
-#endif // MPU6050_REGISTERS_H
+#endif

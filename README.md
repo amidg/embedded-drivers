@@ -1,5 +1,9 @@
+# embedded-drivers
 ## What is this?
 My personal collection of self-developed drivers written in pure C designed for the hardware communication with other devices.
+
+## Why does it exist?
+I have a dream. One day students and open-source enthusiasts do not need to rely on hundreds of libraries and scripts spread all over the Internet to build their embedded project. Just clone this repo and it will automatically build your driver for any popular embedded platform (excl. Arduino).
 
 ## Why is this repo good?
 I want to make drivers that are highly abstracted enough to be portable across not just microcontroller architectures but whole embedded systems in general.\

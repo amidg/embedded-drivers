@@ -1,5 +1,5 @@
 /*
- * This folder allows to create nearly universal interface for the I2c allowing to use
+ * This allows to create nearly universal interface for the I2c allowing to use
  * it accross multiple platforms
  */
 #ifndef I2C_H
